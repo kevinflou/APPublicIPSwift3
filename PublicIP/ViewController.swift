@@ -1,7 +1,7 @@
 //
 //  APPublicIP
 //
-//  Copyright (c) 2015 Alban Perli.
+//  Copyright (c) 2015 Alban Perli. - 2018 Flou Kévin
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -30,15 +30,10 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        
-        
         let ipChecker = APPublicIP();
-        ipChecker.checkForCurrentIP({ (ip) -> Void in
-            
-            println(ip)
-            
+        ipChecker.checkForCurrentIP(completion: { (ip) -> Void in
+            print(ip!)
         }, interval: 0.5.second)
-        
     }
 
     override func didReceiveMemoryWarning() {

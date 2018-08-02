@@ -1,4 +1,4 @@
-## APPublicIP
+## APPublicIP Swift 3 - Original Project by AlbanPerli
 
 Get the device's current public IP Address.
 Based on https://www.ipify.org/
@@ -8,7 +8,7 @@ Based on https://www.ipify.org/
 ```swift
 let ipChecker = APPublicIP();
 ipChecker.getCurrentIP { (ip) -> Void in
-        println(ip)
+        print(ip)
 }
 ```
 
@@ -16,7 +16,7 @@ ipChecker.getCurrentIP { (ip) -> Void in
 ```swift
 let ipChecker = APPublicIP();
 ipChecker.checkForCurrentIP({ (ip) -> Void in
-        println(ip)
+        print(ip)
 }, interval: 0.5.second)
 ```
 

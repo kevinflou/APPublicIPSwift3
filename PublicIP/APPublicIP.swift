@@ -1,7 +1,7 @@
 //
 //  APPublicIP
 //
-//  Copyright (c) 2015 Alban Perli.
+//  Copyright (c) 2015 Alban Perli - 2018 Flou Kévin.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -22,97 +22,74 @@
 // SOFTWARE.
 //
 
-
-
 import Foundation
 
-class APPublicIP {
-
-    private
-    func getDataFromUrl(urL:NSURL, completion: ((data: NSData?) -> Void)) {
-        NSURLSession.sharedSession().dataTaskWithURL(urL) { (data, response, error) in
-            completion(data: data)
+public class APPublicIP {
+    private func getDataFromUrl(urL:NSURL, completion: @escaping ((_ data: NSData?) -> Void)) {
+        URLSession.shared.dataTask(with: urL as URL) { (data, response, error) in
+            if(error != nil){
+                print(error)
+                completion(nil)
+            }else{
+                completion(data as! NSData)
+            }
             }.resume()
     }
     
-    private
-    var previousIP : NSString!
+    private var previousIP : NSString!
     
-    private
-    var timer : NSTimer!
+    private var timer : Timer!
     
     
-    init(){
+    public init(){
         previousIP = nil
         timer = nil
     }
     
-    
-    func getCurrentIP(completion:((ip : NSString?) -> Void)){
-        
+    public func getCurrentIP(completion:@escaping ((_ ip : NSString?) -> Void)){
         if let checkedUrl = NSURL(string: "https://api.ipify.org?format=json") {
-            getDataFromUrl(checkedUrl, completion: { (data) -> Void in
-               
+            getDataFromUrl(urL: checkedUrl, completion: { (data) -> Void in
                 var parseError: NSError?
-                
-                let parsedObject: AnyObject? = NSJSONSerialization.JSONObjectWithData(data!,
-                    options: NSJSONReadingOptions.AllowFragments,
-                    error:&parseError)
-                
-                if let jsonIP = parsedObject as? NSDictionary{
-                
-                    dispatch_async(dispatch_get_main_queue()) {
-                        
-                        completion(ip: jsonIP["ip"] as? NSString)
-                        
+                do{
+                let parsedObject: AnyObject? = try JSONSerialization.jsonObject(with: data! as Data, options: JSONSerialization.ReadingOptions.allowFragments) as AnyObject
+                    if let jsonIP = parsedObject as? NSDictionary{
+                        DispatchQueue.main.async() {
+                            completion(jsonIP["ip"] as? NSString)
+                        }
                     }
+                }catch{
+                    print("parseError")
                 }
-                
             })
         }
-        
     }
     
-    func checkForCurrentIP(completion:((ip : NSString?) -> Void), interval: NSTimeInterval){
-        
+    public func checkForCurrentIP(completion:@escaping ((_ ip : NSString?) -> Void), interval: TimeInterval){
         if self.timer != nil { self.stopChecking() }
-        
-        self.timer = NSTimer.new(every: interval) { () -> Void in
-         
-            self.getCurrentIP({ (ip) -> Void in
-                
+        self.timer = Timer.new(every: interval) { () -> Void in
+            self.getCurrentIP(completion: { (ip) -> Void in
                 if (self.previousIP != nil){
-                    
                     if self.previousIP != ip {
-                        
                         self.previousIP = ip
-                        completion(ip: ip)
-                        
+                        completion(ip)
                     }
-                    
                 }else{
                     self.previousIP = ip
-                    completion(ip: ip)
+                    completion(ip)
                 }
-                
-                
             })
-            
         }
-
         // Execute timer immediately (don't wait for first interval)
         self.timer.fire()
-        
+
         // Start the timer
         self.timer.start()
     }
-    
-    
-    func stopChecking(){
-        
+
+
+    public func stopChecking(){
         self.timer.invalidate()
         self.timer = nil
-        
     }
 }
 
